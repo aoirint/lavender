@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import queue
 import subprocess
 import threading
 
@@ -12,6 +13,7 @@ import numpy as np
 
 preview_width, preview_height = 460, 270
 preview_image: Image = None
+preview_image_queue = queue.LifoQueue(maxsize=100)
 preview_image_tk: ImageTk.PhotoImage = None
 preview_image_view: tk.Label = None
 
@@ -88,6 +90,7 @@ def start_capture(event: tk.Event):
     '-pix_fmt',
     'rgb24',
     '-'
+    # 'video.avi'
   ]
   window_capture_process = subprocess.Popen(command, stdout=subprocess.PIPE, bufsize=bufsize)
 
@@ -103,9 +106,7 @@ def start_capture(event: tk.Event):
       preview_image = Image.fromarray(image_np)
       preview_image = preview_image.resize((preview_width, preview_height))
 
-      preview_image_tk = ImageTk.PhotoImage(preview_image)
-
-      preview_image_view['image'] = preview_image_tk
+      preview_image_queue.put(preview_image)
 
   thread = threading.Thread(target=read_stdout, args=(window_capture_process.stdout, ), daemon=True)
   thread.start()
@@ -168,6 +169,21 @@ def init_components(root: tk.Tk):
   root.update()
   print(preview_image_view.winfo_y() + preview_image_view.winfo_height())
 
+def tick():
+  global preview_image_tk, preview_image_view
+
+  try:
+    preview_image = preview_image_queue.get(block=False, timeout=0.016)
+  except queue.Empty:
+    preview_image = None
+
+  if preview_image is not None:
+    preview_image_tk = ImageTk.PhotoImage(preview_image)
+    preview_image_view['image'] = preview_image_tk
+  else:
+    preview_image_view['image'] = None
+
+  root.after(16, tick) # exec every 16sec in main thread
 
 if __name__ == '__main__':
   root = tk.Tk()
@@ -178,6 +194,7 @@ if __name__ == '__main__':
 
   init_components(root)
 
+  tick()
   root.mainloop()
 
   stop_capture()
