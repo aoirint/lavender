@@ -19,6 +19,7 @@ preview_image_view: tk.Label = None
 
 @dataclass
 class WindowInfo:
+  wndid: int
   title: str
   width: int
   height: int
@@ -32,7 +33,7 @@ def update_window_info_list():
 
   new_list: List[WindowInfo] = []
 
-  def map_window(hwnd, title):
+  def map_window(hwnd, param):
     if not win32gui.IsWindowVisible(hwnd):
       return
 
@@ -40,12 +41,19 @@ def update_window_info_list():
     if len(title) == 0:
       return
 
+    GWL_ID = -12
+    wndid = win32gui.GetWindowLong(hwnd, GWL_ID)
+    if wndid == 0:
+      return
+    print(wndid)
+
     # left, top, right, bottom = win32gui.GetWindowRect(hwnd)
     left, top, right, bottom = win32gui.GetClientRect(hwnd)
     width = right - left
     height = bottom - top
 
     new_list.append(WindowInfo(
+      wndid=int(wndid),
       title=str(title),
       width=int(width),
       height=int(height),
@@ -61,6 +69,8 @@ def select_window(event: tk.Event):
 def start_capture(event: tk.Event):
   global select_window_combobox, window_capture_process
   global preview_image, preview_image_tk, preview_image_view
+
+  stop_capture()
 
   info = window_info_list[select_window_combobox.current()]
 
