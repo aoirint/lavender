@@ -68,7 +68,7 @@ def start_capture(event: tk.Event):
 
   framerate = 30
   framesize = height * width * 3
-  bufsize = framesize * framerate * 10
+  bufsize = framesize * framerate # one frame bufsize to prevent delay
 
   print(f'Title: {title}, Width: {width}, Height: {height}')
 
