@@ -72,7 +72,10 @@ def start_capture(event: tk.Event):
 
   stop_capture()
 
-  info = window_info_list[select_window_combobox.current()]
+  previnfo = window_info_list[select_window_combobox.current()]
+  update_window_info_list()
+
+  info = next(filter(lambda info: info.wndid == previnfo.wndid, window_info_list))
 
   title = info.title
   width = info.width
