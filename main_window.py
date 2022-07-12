@@ -13,7 +13,7 @@ import numpy as np
 
 preview_width, preview_height = 460, 270
 preview_image: Image = None
-preview_image_queue = queue.LifoQueue(maxsize=100)
+preview_image_queue = queue.LifoQueue(maxsize=2)
 preview_image_tk: ImageTk.PhotoImage = None
 preview_image_view: tk.Label = None
 
